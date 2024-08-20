@@ -14,9 +14,9 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 # GitHub API endpoint for forks
 API_URL = "https://api.github.com/repos/ethereum-optimism/optimism/forks"
 # number of pages (# of forks / 100) 
-NUM_PAGES = 31  # TODO: set back to 31 after testing
+NUM_PAGES = 31
 # number of days since last update to consider a fork active
-ACTIVE_THRESHOLD_IN_DAYS = 180
+ACTIVE_THRESHOLD_IN_DAYS = 90
 
 # Fetch forks asynchronously using threads
 def get_forks(url):
@@ -35,7 +35,6 @@ def get_forks(url):
 
 # Fetch a single page of forks
 def get_forks_page(url, page):
-    print(f"Fetching page {page}...")
     response = requests.get(
         f"{url}?per_page=100&page={page}",
         headers={"Authorization": f"token {GITHUB_TOKEN}"}
@@ -48,7 +47,7 @@ def get_forks_page(url, page):
     else:
         print(f"Error fetching page {page}: {response.status_code}")
         return []
-
+    
 # Filter functions
 def is_organization(fork):
     return fork['owner']['type'] == 'Organization'
@@ -78,20 +77,20 @@ def main():
     print(f"Total forks found: {len(all_forks)}")
     
     # Filter for forks by organizations.
-    # forks = [fork for fork in all_forks if is_not_organization(fork)]
-    # print(f"Forks by organizations: {len(forks)}")
+    forks = [fork for fork in all_forks if is_organization(fork)]
+    print(f"Forks by organizations: {len(forks)}")
 
     # Filter for forks by individuals.
-    forks = [fork for fork in all_forks if is_not_organization(fork)]
-    print(f"Forks by individuals: {len(forks)}")
+    # forks = [fork for fork in all_forks if is_not_organization(fork)]
+    # print(f"Forks by individuals: {len(forks)}")
 
     # Filter for actively maintained forks.
-    active_forks = [fork for fork in forks if is_active(fork)]
-    print(f"Actively maintained forks: {len(active_forks)}")
+    forks = [fork for fork in forks if is_active(fork)]
+    print(f"Actively maintained forks: {len(forks)}")
 
     # Filter for forks with stars.
-    forks = [fork for fork in forks if has_stars(fork)]
-    print(f"Forks with stars: {len(forks)}")
+    # forks = [fork for fork in forks if has_stars(fork)]
+    # print(f"Forks with stars: {len(forks)}")
 
     # Filter for forks that have been forked by others.
     forks = [fork for fork in forks if forked_by_others(fork)]
@@ -99,7 +98,7 @@ def main():
 
     print("Filtered list of organizations:")
     for fork in forks:
-        print(f"- {fork['owner']['login']} (URL: {fork['html_url']})")
+        print(f"- {fork['owner']['login']} (URL: {fork['html_url']}) (Updated at: {fork['updated_at']})")
 
 if __name__ == "__main__":
     main()
