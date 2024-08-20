@@ -66,6 +66,9 @@ def has_stars(fork):
 def forked_by_others(fork):
     return fork["forks_count"] > 0
 
+def is_archived(fork):
+    return fork["archived"]
+
 def main():
     if not GITHUB_TOKEN:
         print("Please set your GitHub token as GITHUB_TOKEN in a .env file.")
@@ -83,6 +86,10 @@ def main():
     # Filter for forks by individuals.
     # forks = [fork for fork in all_forks if is_not_organization(fork)]
     # print(f"Forks by individuals: {len(forks)}")
+    
+    # Exclude archived forks.
+    forks = [fork for fork in forks if not is_archived(fork)]
+    print(f"Non-archived forks: {len(forks)}") 
 
     # Filter for actively maintained forks.
     forks = [fork for fork in forks if is_active(fork)]
@@ -96,9 +103,15 @@ def main():
     forks = [fork for fork in forks if forked_by_others(fork)]
     print(f"Forks that have been forked by others: {len(forks)}")
 
+    # Sort by last updated date.
+    forks.sort(key=lambda fork: fork["updated_at"], reverse=True)
+
+    # Sort by open issues count.
+    forks.sort(key=lambda fork: fork["open_issues_count"], reverse=True)
+
     print("Filtered list of organizations:")
     for fork in forks:
-        print(f"- {fork['owner']['login']} (URL: {fork['html_url']}) (Updated at: {fork['updated_at']})")
+        print(f"- {fork['owner']['login']} (URL: {fork['html_url']}) (Updated at: {fork['updated_at']}) (Open issues: {fork['open_issues_count']})")
 
 if __name__ == "__main__":
     main()
